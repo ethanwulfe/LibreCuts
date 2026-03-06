@@ -1,14 +1,17 @@
-name: Android Build
+name: Android Full Build
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code with Submodules
+        uses: actions/checkout@v4
         with:
-          submodules: recursive  # CRITICAL: This fixes the missing icons
+          # CRITICAL: This pulls in the missing icons and video engine
+          submodules: recursive
           fetch-depth: 0
+          lfs: true
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -17,15 +20,21 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
+      - name: Install Android NDK
+        uses: nttld/setup-ndk@v1
+        with:
+          # LibreCuts needs the NDK to compile the C++ video code
+          ndk-version: r25c 
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # assembleDebug is the most "install-friendly" for self-builds
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
+      # Building in Release mode is essential for stable video exporting
+      - name: Build Release APK
+        run: ./gradlew assembleRelease
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LibreCuts-Final-Debug
-          path: "app/build/outputs/apk/debug/*.apk"
+          name: LibreCuts-Full-Build
+          path: "app/build/outputs/apk/release/*.apk"
