@@ -1,38 +1,37 @@
-name: LibreCuts Full Fix
+name: LibreCuts Deep Build
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Pull FULL Source (Icons + Engine)
+      - name: Checkout with FULL Submodules
         uses: actions/checkout@v4
         with:
-          submodules: recursive  # <--- FIXES MISSING ICONS
-          lfs: true              # <--- FIXES VIDEO ASSETS
+          submodules: recursive
           fetch-depth: 0
+          lfs: true
 
-      - name: 2. Set up JDK 17
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
-      - name: 3. Setup Video Engine (NDK)
+      - name: Setup NDK
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: r25c     # <--- FIXES EXPORT CRASHES
+          ndk-version: r25c 
 
-      - name: 4. Grant Permissions
-        run: chmod +x gradlew
-
-      - name: 5. Build Easy-Install APK
-        # We use assembleDebug so your phone doesn't reject the signature
-        run: ./gradlew assembleDebug --stacktrace
-
-      - name: 6. Upload Final APK
+      - name: Build with Native Linking
+        # 'clean' removes broken cache; 'assembleDebug' ensures it installs
+        run: |
+          chmod +x gradlew
+          ./gradlew clean assembleDebug --stacktrace -Dorg.gradle.cuda=false
+          
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: LibreCuts-Working-App
+          name: LibreCuts-Deep-Build
           path: "app/build/outputs/apk/debug/*.apk"
