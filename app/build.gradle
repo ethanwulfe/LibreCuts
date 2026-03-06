@@ -33,9 +33,7 @@ android {
     }
 
     kotlinOptions { jvmTarget = '1.8' }
-
     buildFeatures { compose true }
-
     composeOptions { kotlinCompilerExtensionVersion '1.5.1' }
 
     packaging {
@@ -45,17 +43,15 @@ android {
 }
 
 dependencies {
-    // FIX: Remote FFmpeg engine (Fixes Export Button)
+    // FIX: Remote engine replaces the missing local .aar file
     implementation 'com.arthenica:ffmpeg-kit-full:4.5.LTS'
     implementation 'com.arthenica:smart-exception-java:0.2.1'
 
-    // Video & UI Core
+    // Core Video & UI components (Direct versions to bypass alias errors)
     implementation 'com.google.android.exoplayer:exoplayer-core:2.18.1'
     implementation 'com.google.android.exoplayer:exoplayer-ui:2.18.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'com.airbnb.android:lottie:3.4.0'
-    
-    // AndroidX & Compose (Fixes missing icons/UI)
     implementation 'androidx.core:core-ktx:1.12.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
@@ -64,7 +60,6 @@ dependencies {
     implementation 'androidx.activity:activity-compose:1.8.2'
     implementation 'androidx.compose.ui:ui:1.6.1'
     implementation 'androidx.compose.material3:material3:1.2.0'
-    implementation 'com.google.android.filament:filament-android:1.48.0'
     
     testImplementation 'junit:junit:4.13.2'
 }
