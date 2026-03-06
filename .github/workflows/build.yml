@@ -20,27 +20,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # This builds the stable version
-      - name: Build Release APK
-        run: ./gradlew assembleRelease
+      # This forces the build to use the debug key so it's installable
+      - name: Build Signed Release APK
+        run: ./gradlew assembleRelease -Pandroid.packageSigningConfigs.release.storeFile=debug.keystore -Pandroid.packageSigningConfigs.release.storePassword=android -Pandroid.packageSigningConfigs.release.keyAlias=androiddebugkey -Pandroid.packageSigningConfigs.release.keyPassword=android
 
-      # SIGNING STEP: This signs the unsigned APK so it can be installed
-      - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
-        id: sign_app
-        with:
-          releaseDirectory: app/build/outputs/apk/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
-        env:
-          # If you don't have secrets set up, this step will fail.
-          # For a quick personal build, see the "Quick Manual" method below.
-          BUILD_TOOLS_VERSION: "34.0.0"
-
-      - name: Upload Signed APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: LibreCuts-Signed
-          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
+          name: LibreCuts-Installable
+          path: "app/build/outputs/apk/release/*.apk"
