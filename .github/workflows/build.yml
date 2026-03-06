@@ -6,7 +6,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+        with:
+          submodules: recursive
+          lfs: true
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -14,20 +17,30 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: Install Android NDK
-        uses: nttld/setup-ndk@v1
-        with:
-          ndk-version: r25c # Change this if LibreCuts requires a specific version
-
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      # This builds the Release version which is more stable for exporting
+      # This builds the stable version
       - name: Build Release APK
-        run: ./gradlew assembleRelease --stacktrace
+        run: ./gradlew assembleRelease
 
-      - name: Upload APK
+      # SIGNING STEP: This signs the unsigned APK so it can be installed
+      - name: Sign APK
+        uses: r0adkll/sign-android-release@v1
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
+        env:
+          # If you don't have secrets set up, this step will fail.
+          # For a quick personal build, see the "Quick Manual" method below.
+          BUILD_TOOLS_VERSION: "34.0.0"
+
+      - name: Upload Signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: LibreCuts-Final-Build
-          path: "app/build/outputs/apk/release/*.apk"
+          name: LibreCuts-Signed
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
