@@ -1,11 +1,11 @@
-name: LibreCuts-Final-Optimized
+name: LibreCuts-Full-Resource-Fix
 on: [push, workflow_dispatch]
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 1. Deep Checkout (Icons + Engine)
+      - name: 1. Deep Checkout (Forces Submodule/Icon Sync)
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -19,14 +19,14 @@ jobs:
           distribution: 'temurin'
           cache: gradle
 
-      - name: 3. Setup NDK (r25c)
+      - name: 3. Setup NDK (Crucial for Video Engine)
         uses: nttld/setup-ndk@v1
         with:
           ndk-version: r25c
 
-      - name: 4. Build Optimized for arm64-v8a
-        # We add the '-Pandroid.bundle.enableUncompressedNativeLibs=false' 
-        # and ABI filter to make the video engine more stable.
+      - name: 4. Build with Clean and Resource Refresh
+        # We add 'clean' to force the icons to be re-indexed.
+        # We use '--stacktrace' to see why the engine might be failing.
         run: |
           chmod +x gradlew
           ./gradlew clean assembleDebug \
@@ -36,5 +36,5 @@ jobs:
       - name: 5. Upload Final APK
         uses: actions/upload-artifact@v4
         with:
-          name: LibreCuts-Optimized-Build
+          name: LibreCuts-Full-Build
           path: "app/build/outputs/apk/debug/*.apk"
